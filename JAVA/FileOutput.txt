@@ -1,0 +1,4 @@
+Hi, What's the day today? Mon Nov 25 10:50:27 IST 2024.
+Here's an implementation of PrinWriter class for file writing.
+Hope Code Gym made it simpler for you to understand.
+One step at a time, and off you go!
