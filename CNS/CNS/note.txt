@@ -1,0 +1,727 @@
+~~~~Practical 2 — Caesar Cipher
+#include<iostream>
+using namespace std;
+
+string ceaser(string s1,int sf){
+    string ans;
+    for(int i=0; i<s1.length(); i++){
+        char ch = s1[i];
+        if(ch >= 'a' && ch <= 'z'){
+            ch = ((ch - 'a' + sf) % 26) + 'a';
+        }
+        else if(ch >= 'A' && ch <= 'Z'){
+            ch = ((ch - 'A' + sf) % 26) + 'A';
+        }
+        ans += ch;
+    }
+    return ans;
+}
+
+string ceaser_decrypt(string encrypted, int sf) {
+    return ceaser(encrypted, (26 - (sf % 26)) % 26);
+}
+
+int main(){
+    string s;
+    int shift;
+    cout<<"<<<<<<<<<<<<<<<<< ceaser cipher  >>>>>>>>>>>>>>>>>>"<<endl;
+    cout<<"Enter String : ";
+    cin>>s;
+
+    cout<<"Enter Shift value :";
+    cin>>shift;
+
+    string ans= ceaser(s,shift);
+    cout<<"ENCRYPTED TEXT : "<<ans;
+    
+    cout<<endl<<"Decrypting TEXT ................."<<endl;
+    string dec = ceaser_decrypt(ans, shift);
+    cout<<"DECRYPTED TEXT : "<<dec;
+
+    return 0;
+}
+
+~~~ Playfair Cipher
+#include<iostream>
+#include<string>
+#include<vector>
+using namespace std;
+
+char matrix[5][5];
+
+void createMatrix(string key) {
+    bool used[26] = {false};
+    used[9] = true;
+    int row = 0, col = 0;
+    
+    for(char c : key) {
+        if(c >= 'A' && c <= 'Z') c = c - 'A' + 'a';
+        if(c >= 'a' && c <= 'z' && !used[c - 'a']) {
+            matrix[row][col] = c;
+            used[c - 'a'] = true;
+            col++;
+            if(col == 5) {
+                col = 0;
+                row++;
+            }
+        }
+    }
+    
+    for(char c = 'a'; c <= 'z' && row < 5; c++) {
+        if(c == 'j') continue;
+        if(!used[c - 'a']) {
+            matrix[row][col] = c;
+            col++;
+            if(col == 5) {
+                col = 0;
+                row++;
+            }
+        }
+    }
+}
+
+pair<int,int> findPosition(char c) {
+    if(c == 'j') c = 'i';
+    for(int i = 0; i < 5; i++) {
+        for(int j = 0; j < 5; j++) {
+            if(matrix[i][j] == c) {
+                return {i, j};
+            }
+        }
+    }
+    return {-1, -1};
+}
+
+string preparePlaintext(string text) {
+    string result = "";
+    for(char c : text) {
+        if(c >= 'A' && c <= 'Z') c = c - 'A' + 'a';
+        if(c >= 'a' && c <= 'z') {
+            if(c == 'j') c = 'i';
+            result += c;
+        }
+    }
+    
+    string finalText = "";
+    for(int i = 0; i < result.length(); i++) {
+        finalText += result[i];
+        if(i + 1 < result.length() && result[i] == result[i + 1]) {
+            finalText += 'x';
+        }
+    }
+    
+    if(finalText.length() % 2 == 1) {
+        finalText += 'x';
+    }
+    
+    return finalText;
+}
+
+string playfair(string plaintext, string key) {
+    createMatrix(key);
+    plaintext = preparePlaintext(plaintext);
+    string ciphertext = "";
+    
+    for(int i = 0; i < plaintext.length(); i += 2) {
+        char a = plaintext[i];
+        char b = plaintext[i + 1];
+        
+        pair<int,int> posA = findPosition(a);
+        pair<int,int> posB = findPosition(b);
+        
+        if(posA.first == posB.first) {
+            ciphertext += matrix[posA.first][(posA.second + 1) % 5];
+            ciphertext += matrix[posB.first][(posB.second + 1) % 5];
+        }
+        else if(posA.second == posB.second) {
+            ciphertext += matrix[(posA.first + 1) % 5][posA.second];
+            ciphertext += matrix[(posB.first + 1) % 5][posB.second];
+        }
+        else {
+            ciphertext += matrix[posA.first][posB.second];
+            ciphertext += matrix[posB.first][posA.second];
+        }
+    }
+    
+    return ciphertext;
+}
+
+string playfair_decrypt(string ciphertext, string key) {
+    createMatrix(key);
+    string plaintext = "";
+    for(int i = 0; i < ciphertext.length(); i += 2) {
+        char a = ciphertext[i];
+        char b = ciphertext[i + 1];
+        pair<int,int> posA = findPosition(a);
+        pair<int,int> posB = findPosition(b);
+
+        if(posA.first == posB.first) {
+            plaintext += matrix[posA.first][(posA.second + 4) % 5];
+            plaintext += matrix[posB.first][(posB.second + 4) % 5];
+        }
+        else if(posA.second == posB.second) {
+            plaintext += matrix[(posA.first + 4) % 5][posA.second];
+            plaintext += matrix[(posB.first + 4) % 5][posB.second];
+        }
+        else {
+            plaintext += matrix[posA.first][posB.second];
+            plaintext += matrix[posB.first][posA.second];
+        }
+    }
+    return plaintext;
+}
+
+int main(){
+    string s, key;
+    cout<<"//////////////////// playfair cipher ////////////////////"<<endl;
+    cout<<"Enter String : ";
+    cin>>s;
+    cout<<"Enter Key : ";
+    cin>>key;
+
+    string ans = playfair(s, key);
+    cout<<"ENCRYPTED TEXT : "<<ans<<endl;
+
+    string decrypted = playfair_decrypt(ans, key);
+    cout<<"DECRYPTED TEXT : "<<decrypted<<endl;
+
+    return 0;
+}
+
+~~~ Practical 3 — Diffie-Hellman Key Exchange
+#define ll long long
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+ll power(ll a, ll b, ll p)
+{
+    ll res = 1;
+    a = a % p;
+    while (b > 0)
+    {
+        if (b % 2 == 1)
+            res = (res * a) % p;
+        b = b >> 1;
+        a = (a * a) % p;
+    }
+    return res;
+}
+
+ll public_key_A(ll g, ll p, ll a)
+{
+    return power(g, a, p);
+}
+
+ll public_key_B(ll g, ll p, ll b)
+{
+    return power(g, b, p);
+}
+
+ll symmetric_key_k1(ll y, ll a, ll p)
+{
+    return power(y, a, p);
+}
+
+ll symmetric_key_k2(ll y, ll b, ll p)
+{
+    return power(y, b, p);
+}
+
+int main()
+{
+    ll p = 23;
+    ll g = 9;
+    ll a;
+    ll b;
+
+    cout << "ENTER Private Key For A  :";
+    cin >> a;
+    cout << "ENTER Private Key For B  :";
+    cin >> b;
+
+    ll A_p = public_key_A(g, p, a);
+    ll B_p = public_key_B(g, p, b);
+
+    cout << "Public Key of A (A_p): " << A_p << endl;
+    cout << "Public Key of B (B_p): " << B_p << endl;
+
+    ll K1 = symmetric_key_k1(B_p, a, p);
+    ll K2 = symmetric_key_k2(A_p, b, p);
+
+    cout << "Shared Key computed by A (K1): " << K1 << endl;
+    cout << "Shared Key computed by B (K2): " << K2 << endl;
+
+    if (K1 == K2)
+        cout << "\nKey Exchange Successful! Shared Secret: " << K1 << endl;
+    else
+        cout << "\nKey Exchange Failed!" << endl;
+
+    return 0;
+}
+
+~~~ Practical 4 — RSA Algorithm
+#include <iostream>
+#include <vector>
+using namespace std;
+#define ll long long
+
+ll me(ll b, ll e, ll m)
+{
+    ll r = 1;
+    b %= m;
+    while (e > 0)
+    {
+        if (e % 2 == 1)
+            r = (r * b) % m;
+        e >>= 1;
+        b = (b * b) % m;
+    }
+    return r;
+}
+
+int mi(int e, int phi)
+{
+    int t = 0, nt = 1;
+    int r = phi, nr = e;
+    while (nr != 0)
+    {
+        int q = r / nr;
+        int tmp = nt;
+        nt = t - q * nt;
+        t = tmp;
+
+        tmp = nr;
+        nr = r - q * nr;
+        r = tmp;
+    }
+    if (r > 1)
+        return -1;
+    if (t < 0)
+        t += phi;
+    return t;
+}
+
+int main()
+{
+    cout << "===== RSA IMPLEMENTATION =====\n";
+    int p, q;
+    cout << "Enter P (prime number 1): ";
+    cin >> p;
+    cout << "Enter Q (prime number 2): ";
+    cin >> q;
+
+    int n = p * q;
+    int phi = (p - 1) * (q - 1);
+    int e = 17;
+    int d = mi(e, phi);
+
+    if (d == -1)
+    {
+        cout << "Error: Invalid values. 'e' and 'phi' are not coprime.\n";
+        return 1;
+    }
+
+    cout << "\nPublic Key: (" << e << ", " << n << ")";
+    cout << "\nPrivate Key: (" << d << ", " << n << ")\n";
+
+    cin.ignore();
+    string msg;
+    cout << "\nEnter message to encrypt: ";
+    getline(cin, msg);
+
+    vector<int> encrypted;
+    cout << "\nEncrypted: ";
+    for (char ch : msg)
+    {
+        int m = (int)ch;
+        ll c = me(m, e, n);
+        encrypted.push_back(c);
+        cout << c << " ";
+    }
+
+    cout << "\n\nDecrypted: ";
+    for (int c : encrypted)
+    {
+        ll m = me(c, d, n);
+        cout << (char)m;
+    }
+
+    cout << "\n==============================\n";
+    cout<<"By 23AIML010 OM CHOKSI";
+
+    return 0;
+}
+
+~~~ Practical 5 — S-DES (Simplified DES)
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <bitset>
+using namespace std;
+
+int P10[] = {3, 5, 2, 7, 4, 10, 1, 9, 8, 6};
+int P8[] = {6, 3, 7, 4, 8, 5, 10, 9};
+int IP[] = {2, 6, 3, 1, 4, 8, 5, 7};
+int IP_INV[] = {4, 1, 3, 5, 7, 2, 8, 6};
+int EP[] = {4, 1, 2, 3, 2, 3, 4, 1};
+int P4[] = {2, 4, 3, 1};
+
+int S0[4][4] = {
+    {1, 0, 3, 2},
+    {3, 2, 1, 0},
+    {0, 2, 1, 3},
+    {3, 1, 3, 2}
+};
+
+int S1[4][4] = {
+    {0, 1, 2, 3},
+    {2, 0, 1, 3},
+    {3, 0, 1, 0},
+    {2, 1, 0, 3}
+};
+
+vector<int> permute(const vector<int> &input, const int *order, int size) {
+    vector<int> output;
+    for (int i = 0; i < size; i++) {
+        output.push_back(input[order[i] - 1]);
+    }
+    return output;
+}
+
+void leftShift(vector<int> &bits, int shifts) {
+    rotate(bits.begin(), bits.begin() + shifts, bits.begin() + 5);
+    rotate(bits.begin() + 5, bits.begin() + 5 + shifts, bits.end());
+}
+
+vector<int> xorVec(const vector<int> &a, const vector<int> &b) {
+    vector<int> result;
+    for (size_t i = 0; i < a.size(); i++)
+        result.push_back(a[i] ^ b[i]);
+    return result;
+}
+
+vector<int> sboxLookup(const vector<int> &input, int box[4][4]) {
+    int row = input[0] * 2 + input[3];
+    int col = input[1] * 2 + input[2];
+    int val = box[row][col];
+    return {val / 2, val % 2};
+}
+
+vector<int> fFunction(vector<int> right, vector<int> key) {
+    vector<int> expanded = permute(right, EP, 8);
+    vector<int> xored = xorVec(expanded, key);
+    vector<int> left(xored.begin(), xored.begin() + 4);
+    vector<int> right_half(xored.begin() + 4, xored.end());
+    vector<int> s0_out = sboxLookup(left, S0);
+    vector<int> s1_out = sboxLookup(right_half, S1);
+    vector<int> combined = {s0_out[0], s0_out[1], s1_out[0], s1_out[1]};
+    return permute(combined, P4, 4);
+}
+
+vector<int> fk(vector<int> bits, vector<int> key) {
+    vector<int> left(bits.begin(), bits.begin() + 4);
+    vector<int> right(bits.begin() + 4, bits.end());
+    vector<int> f_out = fFunction(right, key);
+    vector<int> left_xor = xorVec(left, f_out);
+    left_xor.insert(left_xor.end(), right.begin(), right.end());
+    return left_xor;
+}
+
+vector<int> switchHalves(vector<int> bits) {
+    vector<int> result(bits.begin() + 4, bits.end());
+    result.insert(result.end(), bits.begin(), bits.begin() + 4);
+    return result;
+}
+
+pair<vector<int>, vector<int>> generateKeys(vector<int> key10) {
+    vector<int> p10 = permute(key10, P10, 10);
+    leftShift(p10, 1);
+    vector<int> k1 = permute(p10, P8, 8);
+    leftShift(p10, 2);
+    vector<int> k2 = permute(p10, P8, 8);
+    return {k1, k2};
+}
+
+vector<int> encrypt(vector<int> plaintext, vector<int> k1, vector<int> k2) {
+    vector<int> ip = permute(plaintext, IP, 8);
+    vector<int> round1 = fk(ip, k1);
+    vector<int> swapped = switchHalves(round1);
+    vector<int> round2 = fk(swapped, k2);
+    return permute(round2, IP_INV, 8);
+}
+
+vector<int> decrypt(vector<int> ciphertext, vector<int> k1, vector<int> k2) {
+    vector<int> ip = permute(ciphertext, IP, 8);
+    vector<int> round1 = fk(ip, k2);
+    vector<int> swapped = switchHalves(round1);
+    vector<int> round2 = fk(swapped, k1);
+    return permute(round2, IP_INV, 8);
+}
+
+int main() {
+    vector<int> key10 = {1, 1, 0, 1, 0, 0, 1, 0, 1, 0};
+    vector<int> plaintext = {0, 1, 1, 0, 1, 0, 0, 1};
+    auto [k1, k2] = generateKeys(key10);
+    vector<int> cipher = encrypt(plaintext, k1, k2);
+    vector<int> decrypted = decrypt(cipher, k1, k2);
+    cout << "Plaintext: ";
+    for (int b : plaintext) cout << b;
+    cout << "\nEncrypted: ";
+    for (int b : cipher) cout << b;
+    cout << "\nDecrypted: ";
+    for (int b : decrypted) cout << b;
+    return 0;
+}
+
+~~~ Practical 8 — SHA-256 Message Integrity (Python)
+import hashlib
+
+def get_sha256_hash(input_string):
+    """Returns SHA-256 hash of input string."""
+    sha256_hash = hashlib.sha256()
+    sha256_hash.update(input_string.encode('utf-8'))
+    return sha256_hash.hexdigest()
+
+message = "Hello, I am Dev Patel"
+hashed_message = get_sha256_hash(message)
+
+print(f"Original Message: {message}")
+print(f"SHA-256 Hash: {hashed_message}")
+
+# Simulate Message Tampering
+tampered_message = "Hello, this is Dev"
+tampered_hash = get_sha256_hash(tampered_message)
+
+print("\nTampered Message:", tampered_message)
+print("SHA-256 Hash (after tampering):", tampered_hash)
+
+
+~~~ Referal File
+~~~1. Caesar Cipher Brute-Force Decryption
+
+Decrypt a ciphertext when key is unknown using brute force.
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+string decryptCaesar(string text, int shift) {
+    string result = "";
+    for (char c : text) {
+        if (isalpha(c)) {
+            char base = islower(c) ? 'a' : 'A';
+            c = (c - base - shift + 26) % 26 + base;
+        }
+        result += c;
+    }
+    return result;
+}
+
+int main() {
+    string cipher = "ebiilxfjipqrabkqpdllajlokfkd";
+
+    cout << "Brute Force Caesar Cipher Decryption:\n";
+    for (int key = 1; key <= 26; key++) {
+        string decrypted = decryptCaesar(cipher, key);
+        cout << "Key = " << key << " → " << decrypted << endl;
+    }
+    return 0;
+}
+
+
+🟢 Technique used: Brute force (try all 26 keys).
+✅ You’ll see “helloaimlstudentsgoodmorning” at key = 23.
+
+~~~ 2. Vigenère Cipher (Encryption & Decryption)
+#include <iostream>
+#include <string>
+using namespace std;
+
+string generateKey(string text, string key) {
+    int x = text.size();
+    for (int i = 0; ; i++)
+        if (x == i) i = 0;
+        else if (key.size() == text.size()) break;
+        else key.push_back(key[i]);
+    return key;
+}
+
+string cipherText(string text, string key) {
+    string cipher_text;
+    for (int i = 0; i < text.size(); i++) {
+        char x = (text[i] + key[i]) % 26;
+        x += 'A';
+        cipher_text.push_back(x);
+    }
+    return cipher_text;
+}
+
+string originalText(string cipher_text, string key) {
+    string orig_text;
+    for (int i = 0; i < cipher_text.size(); i++) {
+        char x = (cipher_text[i] - key[i] + 26) % 26;
+        x += 'A';
+        orig_text.push_back(x);
+    }
+    return orig_text;
+}
+
+int main() {
+    string text = "HELLOAIML";
+    string key = "KEY";
+
+    string newKey = generateKey(text, key);
+    string cipher = cipherText(text, newKey);
+    string orig = originalText(cipher, newKey);
+
+    cout << "Plaintext: " << text << endl;
+    cout << "Key: " << key << endl;
+    cout << "Encrypted: " << cipher << endl;
+    cout << "Decrypted: " << orig << endl;
+
+    return 0;
+}
+
+
+🟢 Implements Vigenère encryption/decryption.
+You can modify text and key easily.
+
+~~~ 3. Frequency Analysis (for Caesar Cipher)
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    string cipher = "ebiilxfjipqrabkqpdllajlokfkd";
+    vector<int> freq(26, 0);
+
+    for (char c : cipher)
+        if (isalpha(c))
+            freq[tolower(c) - 'a']++;
+
+    cout << "Letter Frequency:\n";
+    for (int i = 0; i < 26; i++)
+        cout << char('a' + i) << ": " << freq[i] << endl;
+
+    int maxIndex = max_element(freq.begin(), freq.end()) - freq.begin();
+    char mostCommon = 'a' + maxIndex;
+
+    cout << "\nMost frequent letter: " << mostCommon << endl;
+    cout << "If it corresponds to 'e', then shift key ≈ "
+         << (mostCommon - 'e' + 26) % 26 << endl;
+
+    return 0;
+}
+
+
+This code performs frequency analysis —
+estimates likely Caesar key by assuming the most frequent letter ≈ 'e'.
+
+~~~ 4. LSB Steganography (Python)
+
+Hide and extract a secret message in an image.
+
+⚠️ Requires: Pillow (pip install pillow)
+
+from PIL import Image
+
+def encode(img_path, message, output_path):
+    img = Image.open(img_path)
+    encoded = img.copy()
+    width, height = img.size
+    index = 0
+    message += chr(0)  # End marker
+
+    for row in range(height):
+        for col in range(width):
+            pixel = list(img.getpixel((col, row)))
+            for n in range(3):  # RGB channels
+                if index < len(message):
+                    pixel[n] = pixel[n] & ~1 | ((ord(message[index]) >> n) & 1)
+                else:
+                    break
+            encoded.putpixel((col, row), tuple(pixel))
+            index += 1
+            if index > len(message):
+                encoded.save(output_path)
+                return
+    encoded.save(output_path)
+
+def decode(img_path):
+    img = Image.open(img_path)
+    width, height = img.size
+    message = ""
+    char = 0
+    bits = 0
+
+    for row in range(height):
+        for col in range(width):
+            pixel = img.getpixel((col, row))
+            for n in range(3):
+                char |= (pixel[n] & 1) << bits
+                bits += 1
+                if bits == 8:
+                    if char == 0:
+                        return message
+                    message += chr(char)
+                    char = 0
+                    bits = 0
+    return message
+
+# Example usage
+# encode("input.png", "Hello AIML", "encoded.png")
+# print(decode("encoded.png"))
+
+
+ Demonstrates Least Significant Bit (LSB) hiding/extraction.
+
+~~~ 5. GCD using Euclid’s Algorithm
+#include <iostream>
+using namespace std;
+
+int gcd(int a, int b) {
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+int main() {
+    int a, b;
+    cout << "Enter two numbers: ";
+    cin >> a >> b;
+    cout << "GCD of " << a << " and " << b << " is " << gcd(a, b) << endl;
+    return 0;
+}
+
+
+🟢 Classic Euclidean algorithm for GCD.
+Example: input 36 60 → output 12.
+
+~~~ 6. Check if Two Numbers are Relatively Prime
+#include <iostream>
+using namespace std;
+
+int gcd(int a, int b) {
+    return b == 0 ? a : gcd(b, a % b);
+}
+
+int main() {
+    int a, b;
+    cout << "Enter two numbers: ";
+    cin >> a >> b;
+
+    if (gcd(a, b) == 1)
+        cout << a << " and " << b << " are relatively prime." << endl;
+    else
+        cout << a << " and " << b << " are NOT relatively prime." << endl;
+    return 0;
+}
+
+
+🟢 Uses GCD — if GCD(a, b) == 1, they’re coprime.
