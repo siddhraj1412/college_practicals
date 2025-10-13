@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        function demo(){
+            alert("Welcome to JS")
+        }
+        function demo2(){
+            var a=confirm("are you sure?")
+            if(a==true){
+                alert("Record Delete")
+            }
+        }
+        function demo3(){
+            var a=prompt("Eneter no.1",0)
+            var b=prompt("Eneter no.2",0)
+            var c=parseInt(a)+parseInt(b)
+            document.writeln("The sum is "+c)
+        }
+    </script>
+</head>
+<body>
+    <input type="button" onclick="demo()" value="clickme"/>
+    <input type="button" onclick="demo2()" value="clickme2"/>
+    <input type="button" onclick="demo3()" value="clickme3"/>
+</body>
+</html>

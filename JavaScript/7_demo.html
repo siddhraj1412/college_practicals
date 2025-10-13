@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        function demo() {
+            var a = document.getElementById("txt1").value 
+            var b = document.getElementById('txt2').value
+            var c  = parseInt(a) + parseInt(b)
+            document.getElementById('ans').innerHTML = "Sum is " + c 
+        }
+    </script>
+</head>
+<body>
+    NO1 : <input type="text" autocomplete="off" id="txt1"/>
+    NO2 : <input type="text" autocomplete="off" id="txt2"/>
+    <input type="button" onclick="demo()" value="+">
+    <p id ='ans'></p>
+</body>
+</html>

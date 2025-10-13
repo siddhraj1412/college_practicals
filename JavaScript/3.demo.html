@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript Output Example</title>
+</head>
+<body>
+
+    <h2>Output:</h2>
+    <div id="output"></div> <!-- Where results appear -->
+
+    <script>
+        // Target the div
+        const output = document.getElementById("output");
+
+        // Function declarations and executions
+        function sum(a, b) {
+            return a + b;
+        }
+
+        let ans = sum(20, 70);
+        document.write("sum is "+ans +"<br>")
+
+        // Arrow function demo1
+        const demo1 = () => {
+            output.innerHTML += "Hello 1<br>";
+        }
+        demo1();
+
+        // Arrow function demo2
+        const demo2 = (a) => {
+            output.innerHTML += "Hi " + a + "<br>";
+        }
+        demo2("Siddhraj");
+
+        // Arrow function demo3 (returns sum)
+        const demo3 = (a, b) => a + b;
+        let ans1 = demo3(20, 10);
+        output.innerHTML += "Sum is: " + ans1 + "<br>";
+
+        // Arrow function demo4 (with return block)
+        const demo4 = (a, b) => {
+            let c = a + b;
+            return c;
+        }
+        let ans3 = demo4(70, 43);
+        output.innerHTML += "Sum is: " + ans3 + "<br>";
+    </script>
+
+</body>
+</html>
